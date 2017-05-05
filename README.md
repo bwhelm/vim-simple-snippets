@@ -17,7 +17,7 @@ automatically.
 
 Here's an example set-up for pandoc-flavored markdown:
 
-let g:SimpleSnippetsList = {
+	let g:SimpleSnippetsList = {
 			\ '88':      [2, 2, '**',            '**',            ''],
 			\ '8':       [1, 1, '*',             '*',             ''],
 			\ '-':       [1, 1, '---',           '---',           ''],
@@ -32,8 +32,8 @@ let g:SimpleSnippetsList = {
 User must provide a mapping to `<Plug>simpleSnippetTrigger`, such as the
 following:
 
-imap <Tab> <PlugsimpleSnippetTrigger
+	imap <Tab> <PlugsimpleSnippetTrigger
 
 or, to also use `<Tab>` to move forward in pop-up menus:
 
-imap <expr> <Tab> pumvisible() ? "\<C-P>" : "\<Plug>simpleSnippetTrigger"
+	imap <expr> <Tab> pumvisible() ? "\<C-P>" : "\<Plug>simpleSnippetTrigger"
