@@ -15,7 +15,7 @@ endif
 function! s:RestoreMapping(mapDict, key, mode) abort  "{{{1
     " Restores mapping saved in mapDict
 	try
-		execute a:mode . 'unmap <buffer> ' . a:key
+		execute a:mode . 'unmap <buffer>' a:key
 	catch /E31/
 	endtry
 	if !empty(a:mapDict)
@@ -30,6 +30,9 @@ function! s:RestoreMapping(mapDict, key, mode) abort  "{{{1
 endfunction
 
 function! simplesnippets#DeleteSimpleSnippet() abort
+	if !exists('b:recursiveSnippetList')
+		let b:recursiveSnippetList = []
+	endif
 	if b:recursiveSnippetList == []
 		if exists('b:completion_bs_map')
 			call <SID>RestoreMapping(b:completion_bs_map, "\<BS>", 'i')
@@ -99,7 +102,9 @@ function! simplesnippets#RecursiveSimpleSnippets() abort
 	let l:line = getline('.')
 	let l:cursor = getpos('.')[2]
 	let l:previous = l:line[l:cursor - 2]
-	if l:previous =~# '\s' || l:previous ==# ':' || l:previous ==# ''
+	" Cases in which we return a <Tab>: prior space, empty (beginning of line)
+	" or ':' (for description lists).
+	if l:previous =~# '\s' || l:previous ==# '' || l:previous ==# ':'
 		return "\<Tab>"
 	endif
 	" Check for match of simple snippets
