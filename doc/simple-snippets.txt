@@ -36,3 +36,9 @@ following:
 or, to also use "<Tab>" to move forward in pop-up menus:
 
     imap <expr> <Tab> pumvisible() ? "\<C-P>" : "\<Plug>simpleSnippetTrigger"
+
+It is possible to create multiline snippets, but simple snippets really isn't
+designed for that case. Consequently, the cursor may not be placed at the
+correct place when entering the snippet, and hitting `<Tab>` to exit a snippet
+will not be reliable. (Setting 'whichwrap' to include `[,]` will help, but not
+fix the problem.)

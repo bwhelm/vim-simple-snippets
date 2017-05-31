@@ -8,6 +8,10 @@
 " rather than just `.` will catch matches at the start of lines.) If 'rhs' is
 " empty, there is no need to hit `<Tab>` to get out of snippet. Finally,
 " 'next' is there to jump to a next snippet automatically.
+"
+" Change this to just a list: [key, length to compare, length of key, lhs,
+" rhs, next]. Then extract the key using filter.
+
 if !exists('g:SimpleSnippetsList')
 	let g:SimpleSnippetsList = {}
 endif
@@ -45,7 +49,7 @@ function! simplesnippets#DeleteSimpleSnippet() abort
 	else
 		let l:line = getline('.')
 		let l:cursor = col('.')
-		let [l:key, l:next] = b:recursiveSnippetList[-1]
+		let [l:key, l:id] = b:recursiveSnippetList[-1]
 		let l:leftMatch = g:SimpleSnippetsList[l:key][2]
 		let l:rightMatch = g:SimpleSnippetsList[l:key][3]
 		let l:previousChars = l:line[l:cursor - 1 - len(l:leftMatch):l:cursor - 2]
@@ -64,11 +68,16 @@ function! simplesnippets#DeleteSimpleSnippet() abort
 	endif
 endfunction
 
-function! s:InsertSnippet(key) abort
-	let [l:compLength, l:keyLength, l:left, l:right, l:next] =
-				\ g:SimpleSnippetsList[a:key]
+function! s:RetrieveMatchedKey(key, id) abort
+	return filter(copy(g:SimpleSnippetsList),
+				\ 'v:val[0] ==# a:key && v:val[6] ==# a:id')
+endfunction
+
+function! s:InsertSnippet(matchList) abort
+	let [l:key, l:compLength, l:keyLength, l:left, l:right, l:next, l:id]
+				\ = a:matchList
 	if l:right !=# ''
-		let b:recursiveSnippetList += [[a:key, l:next]]
+		let b:recursiveSnippetList += [[l:key, l:id]]
 	endif
 	let l:typed = repeat("\<BS>", l:keyLength)
 	let l:typed .= l:left . l:right
@@ -79,14 +88,17 @@ function! s:InsertSnippet(key) abort
 endfunction
 
 function! s:JumpOutOfSnippet(line, cursor) abort
-	let [l:key, l:next] = b:recursiveSnippetList[-1]
+	let [l:key, l:id] = b:recursiveSnippetList[-1]
 	call remove(b:recursiveSnippetList, -1)
-	let [l:compLength, l:keyLength, l:left, l:right, l:next] =
-				\ g:SimpleSnippetsList[l:key]
+	let l:matchList = <SID>RetrieveMatchedKey(l:key, l:id)
+	let [l:key, l:compLength, l:keyLength, l:left, l:right, l:next, l:id]
+					\ = l:matchList[0]
 	let l:matchPos = match(a:line, escape(l:right, '$.*~\^['), a:cursor - 1)
 	let l:typed = repeat("\<Right>", len(l:right) + l:matchPos - a:cursor + 1)
 	if l:next !=# ''
-		let l:typed .= repeat(' ', len(l:next)) . <SID>InsertSnippet(l:next)
+		let l:matchList = <SID>RetrieveMatchedKey(l:next, l:id)
+		let l:typed .= repeat(' ', len(l:next))
+					\ . <SID>InsertSnippet(l:matchList[0])
 	endif
 	if exists('b:completion_bs_map')
 		call <SID>RestoreMapping(b:completion_bs_map, "\<BS>", 'i')
@@ -108,22 +120,27 @@ function! simplesnippets#RecursiveSimpleSnippets() abort
 		return "\<Tab>"
 	endif
 	" Check for match of simple snippets
-	for l:key in keys(g:SimpleSnippetsList)
-		let [l:compLength, l:keyLength, l:left, l:right, l:next] =
-					\ g:SimpleSnippetsList[l:key]
-		if l:cursor - l:compLength < 1
-			let l:compLength -= 1
+	let l:matchLength = l:cursor < 11 ? l:cursor : 11  " Assume max length of 10 chars for key
+	let l:matchString = l:line[l:cursor - l:matchLength : l:cursor - 2]
+	let l:matches = filter(copy(g:SimpleSnippetsList), 'l:matchString[l:matchLength - v:val[1] - 1 : l:matchLength - 1] =~# v:val[0]')
+	if len(l:matches) == 1
+		return <SID>InsertSnippet(l:matches[0])
+	elseif len(l:matches) > 1
+		echom 'Here'
+		let l:idList = map(copy(l:matches), 'v:val[6]')
+		for l:index in range(len(l:idList))
+			let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
+		endfor
+		let l:match = l:matches[inputlist(l:idList) - 1]
+		" let l:id = inputlist(l:idList) - 1
+		" let l:match = l:matches[l:id]
+		return <SID>InsertSnippet(l:match)
+	else  " No match, so check if need to jump to end of snippet
+		if len(b:recursiveSnippetList) > 0
+			return <SID>JumpOutOfSnippet(l:line, l:cursor)
+		else  " Not finding shortcut, no nested snippet, so try omni-completion
+			return "\<C-X>\<C-O>"
 		endif
-		let l:possMatch = l:line[l:cursor - l:compLength - 1:l:cursor - 2]
-		if l:possMatch =~# l:key
-			return <SID>InsertSnippet(l:key)
-		endif
-	endfor
-	" No match, so check if need to jump to end of snippet
-	if len(b:recursiveSnippetList) > 0
-		return <SID>JumpOutOfSnippet(l:line, l:cursor)
-	else  " Not finding shortcut, no nested snippet, so try omni-completion
-		return "\<C-X>\<C-O>"
 	endif
 endfunction
 
