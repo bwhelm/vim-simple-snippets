@@ -50,8 +50,9 @@ function! simplesnippets#DeleteSimpleSnippet() abort
 		let l:line = getline('.')
 		let l:cursor = col('.')
 		let [l:key, l:id] = b:recursiveSnippetList[-1]
-		let l:leftMatch = g:SimpleSnippetsList[l:key][2]
-		let l:rightMatch = g:SimpleSnippetsList[l:key][3]
+		let l:match = <SID>RetrieveMatchedKey(l:key, l:id)[0]
+		let l:leftMatch = l:match[3]
+		let l:rightMatch = l:match[4]
 		let l:previousChars = l:line[l:cursor - 1 - len(l:leftMatch):l:cursor - 2]
 		let l:nextChars = l:line[l:cursor - 1:l:cursor + len(l:rightMatch) - 2]
 		if l:previousChars ==# l:leftMatch && l:nextChars ==# l:rightMatch
