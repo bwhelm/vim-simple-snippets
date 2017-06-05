@@ -123,7 +123,7 @@ function! simplesnippets#RecursiveSimpleSnippets() abort
 	" Check for match of simple snippets
 	let l:matchLength = l:cursor < 11 ? l:cursor : 11  " Assume max length of 10 chars for key
 	let l:matchString = l:line[l:cursor - l:matchLength : l:cursor - 2]
-	let l:matches = filter(copy(g:SimpleSnippetsList), 'l:matchString[l:matchLength - v:val[1] - 1 : l:matchLength - 1] =~# v:val[0]')
+	let l:matches = filter(copy(g:SimpleSnippetsList), 'l:matchString[max([0, l:matchLength - v:val[1] - 1]) : l:matchLength - 1] =~# v:val[0]')
 	if len(l:matches) == 1
 		return <SID>InsertSnippet(l:matches[0])
 	elseif len(l:matches) > 1
