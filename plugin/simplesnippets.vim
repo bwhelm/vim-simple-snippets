@@ -4,4 +4,4 @@ scriptencoding utf-8
 " Simple (Recursive) Snippets
 " ============================================================================
 
-imap <Plug>simpleSnippetTrigger <C-R>=simplesnippets#RecursiveSimpleSnippets()<CR>
+inoremap <Plug>simpleSnippetTrigger <C-R>=simplesnippets#RecursiveSnippetsHandler('omni')<CR><C-R>=simplesnippets#RecursiveSnippetsHandler('snippet')<CR>

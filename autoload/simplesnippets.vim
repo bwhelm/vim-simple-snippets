@@ -17,7 +17,7 @@ if !exists('g:SimpleSnippetsList')
 endif
 
 function! s:RestoreMapping(mapDict, key, mode) abort  "{{{1
-    " Restores mapping saved in mapDict
+	" Restores mapping saved in mapDict
 	try
 		execute a:mode . 'unmap <buffer>' a:key
 	catch /E31/
@@ -108,18 +108,12 @@ function! s:JumpOutOfSnippet(line, cursor) abort
 	return l:typed
 endfunction
 
-function! simplesnippets#RecursiveSimpleSnippets() abort
+function! s:RecursiveSimpleSnippets() abort
 	if !exists('b:recursiveSnippetList')
 		let b:recursiveSnippetList = []
 	endif
 	let l:line = getline('.')
 	let l:cursor = getpos('.')[2]
-	let l:previous = l:line[l:cursor - 2]
-	" Cases in which we return a <Tab>: prior space, empty (beginning of line)
-	" or ':' (for description lists).
-	if l:previous =~# '\s' || l:previous ==# '' || l:previous ==# ':'
-		return "\<Tab>"
-	endif
 	" Check for match of simple snippets
 	let l:matchLength = l:cursor < 11 ? l:cursor : 11  " Assume max length of 10 chars for key
 	let l:matchString = l:line[l:cursor - l:matchLength : l:cursor - 2]
@@ -127,7 +121,6 @@ function! simplesnippets#RecursiveSimpleSnippets() abort
 	if len(l:matches) == 1
 		return <SID>InsertSnippet(l:matches[0])
 	elseif len(l:matches) > 1
-		echom 'Here'
 		let l:idList = map(copy(l:matches), 'v:val[6]')
 		for l:index in range(len(l:idList))
 			let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
@@ -136,13 +129,41 @@ function! simplesnippets#RecursiveSimpleSnippets() abort
 		" let l:id = inputlist(l:idList) - 1
 		" let l:match = l:matches[l:id]
 		return <SID>InsertSnippet(l:match)
-	else  " No match, so check if need to jump to end of snippet
-		if len(b:recursiveSnippetList) > 0
-			return <SID>JumpOutOfSnippet(l:line, l:cursor)
-		else  " Not finding shortcut, no nested snippet, so try omni-completion
+	elseif len(b:recursiveSnippetList) > 0 
+		" No match, so check if need to jump to end of snippet
+		return <SID>JumpOutOfSnippet(l:line, l:cursor)
+	endif
+	return ''
+endfunction
+
+function! simplesnippets#RecursiveSnippetsHandler(type) abort
+	" Want to use omni completion first. Solution is modeled after
+	" <https://stackoverflow.com/questions/2136801/vim-keyword-complete-when-omni-complete-returns-nothing>
+	if !exists('b:stopAutoComplete')
+		let b:stopAutoComplete = 0
+	endif
+	if pumvisible() && !b:stopAutoComplete
+		let b:stopAutoComplete = 1
+		return "\<C-N>"
+	endif
+	let l:cursor = getpos('.')[2]
+	let l:previous = getline('.')[l:cursor - 2]
+	" Cases in which we return a <Tab>: prior space, empty (beginning of line)
+	" or ':' (for description lists).
+	if (l:previous =~# '\s' || l:previous ==# '' || l:previous ==# ':') && !b:stopAutoComplete
+		let b:stopAutoComplete = 1
+		return "\<Tab>"
+	endif
+	if a:type ==# 'omni' && !b:stopAutoComplete
+		if !pumvisible() && !&omnifunc
 			return "\<C-X>\<C-O>"
 		endif
+	elseif a:type ==# 'snippet' && !pumvisible() && !b:stopAutoComplete
+		let b:stopAutoComplete = 0
+		return <SID>RecursiveSimpleSnippets()
 	endif
+	let b:stopAutoComplete = 0
+	return ''
 endfunction
 
 augroup RecursiveSimpleSnippets
