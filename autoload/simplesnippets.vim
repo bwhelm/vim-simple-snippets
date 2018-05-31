@@ -143,7 +143,9 @@ function! simplesnippets#RecursiveSnippetsHandler(type) abort
         let b:stopAutoComplete = 0
     endif
     if pumvisible() && !b:stopAutoComplete
-        let b:stopAutoComplete = 1
+        if a:type ==# 'omni'
+            let b:stopAutoComplete = 1
+        endif
         return "\<C-N>"
     endif
     let l:cursor = getpos('.')[2]
