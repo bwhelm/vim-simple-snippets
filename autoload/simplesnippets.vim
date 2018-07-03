@@ -109,9 +109,6 @@ function! s:JumpOutOfSnippet(line, cursor) abort
 endfunction
 
 function! s:RecursiveSimpleSnippets() abort
-    if !exists('b:recursiveSnippetList')
-        let b:recursiveSnippetList = []
-    endif
     let l:line = getline('.')
     let l:cursor = getpos('.')[2]
     " Check for match of simple snippets
@@ -139,6 +136,9 @@ endfunction
 function! simplesnippets#RecursiveSnippetsHandler(type) abort
     " Want to use omni completion first. Solution is modeled after
     " <https://stackoverflow.com/questions/2136801/vim-keyword-complete-when-omni-complete-returns-nothing>
+    if !exists('b:recursiveSnippetList')
+        let b:recursiveSnippetList = []
+    endif
     if !exists('b:stopAutoComplete')
         let b:stopAutoComplete = 0
     endif
@@ -152,7 +152,10 @@ function! simplesnippets#RecursiveSnippetsHandler(type) abort
     let l:previous = getline('.')[l:cursor - 2]
     " Cases in which we return a <Tab>: prior space, empty (beginning of line)
     " or ':' (for description lists).
-    if (l:previous =~# '\s' || l:previous ==# '' || l:previous ==# ':') && !b:stopAutoComplete
+    if (l:previous =~# '\s' ||
+            \ l:previous ==# '' ||
+            \ (l:previous ==# ':' && len(b:recursiveSnippetList) == 0))
+            \ && !b:stopAutoComplete
         let b:stopAutoComplete = 1
         return "\<Tab>"
     endif
