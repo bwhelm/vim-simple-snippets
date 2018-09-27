@@ -84,7 +84,7 @@ function! s:InsertSnippet(matchList) abort
     let l:typed .= l:left . l:right
     let l:typed .= repeat("\<Left>", len(l:right))
     let b:completion_bs_map = maparg('<BS>', 'i', 0, 1)
-    inoremap <BS> <C-r>=simplesnippets#DeleteSimpleSnippet()<CR>
+    inoremap <silent> <BS> <C-r>=simplesnippets#DeleteSimpleSnippet()<CR>
     return l:typed
 endfunction
 
@@ -116,6 +116,7 @@ function! s:RecursiveSimpleSnippets() abort
     let l:matchString = l:line[l:cursor - l:matchLength : l:cursor - 2]
     let l:matches = filter(copy(g:SimpleSnippetsList), 'l:matchString[max([0, l:matchLength - v:val[1] - 1]) : l:matchLength - 1] =~# v:val[0]')
     if len(l:matches) == 1
+        let b:stopAutoComplete = 1
         return <SID>InsertSnippet(l:matches[0])
     elseif len(l:matches) > 1
         let l:idList = map(copy(l:matches), 'v:val[6]')
@@ -123,11 +124,11 @@ function! s:RecursiveSimpleSnippets() abort
             let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
         endfor
         let l:match = l:matches[inputlist(l:idList) - 1]
-        " let l:id = inputlist(l:idList) - 1
-        " let l:match = l:matches[l:id]
+        let b:stopAutoComplete = 1
         return <SID>InsertSnippet(l:match)
     elseif len(b:recursiveSnippetList) > 0 
         " No match, so check if need to jump to end of snippet
+        let b:stopAutoComplete = 1
         return <SID>JumpOutOfSnippet(l:line, l:cursor)
     endif
     return ''
@@ -143,7 +144,7 @@ function! simplesnippets#RecursiveSnippetsHandler(type) abort
         let b:stopAutoComplete = 0
     endif
     if pumvisible() && !b:stopAutoComplete
-        if a:type ==# 'omni'
+        if a:type ==# 'snippet'
             let b:stopAutoComplete = 1
         endif
         return "\<C-N>"
@@ -164,7 +165,6 @@ function! simplesnippets#RecursiveSnippetsHandler(type) abort
             return "\<C-X>\<C-O>"
         endif
     elseif a:type ==# 'snippet' && !pumvisible() && !b:stopAutoComplete
-        let b:stopAutoComplete = 0
         return <SID>RecursiveSimpleSnippets()
     endif
     let b:stopAutoComplete = 0

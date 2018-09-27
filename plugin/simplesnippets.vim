@@ -4,4 +4,5 @@ scriptencoding utf-8
 " Simple (Recursive) Snippets
 " ============================================================================
 
-inoremap <Plug>simpleSnippetTrigger <C-R>=simplesnippets#RecursiveSnippetsHandler('omni')<CR><C-R>=simplesnippets#RecursiveSnippetsHandler('snippet')<CR>
+" Mapping. '<C-]>' will trigger abbreviation completion.
+inoremap <silent> <Plug>simpleSnippetTrigger <C-]><C-R>=simplesnippets#RecursiveSnippetsHandler('snippet')<CR><C-R>=simplesnippets#RecursiveSnippetsHandler('omni')<CR>
