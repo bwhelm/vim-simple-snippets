@@ -4,5 +4,7 @@ scriptencoding utf-8
 " Simple (Recursive) Snippets
 " ============================================================================
 
-" Mapping. '<C-]>' will trigger abbreviation completion.
-inoremap <silent> <Plug>simpleSnippetTrigger <C-]><C-R>=simplesnippets#RecursiveSnippetsHandler('snippet')<CR><C-R>=simplesnippets#RecursiveSnippetsHandler('omni')<CR>
+" Mapping. Will return <C-n> if the pop-up menu is visible, otherwise will
+" call the snippet function (after using '<C-]>' to trigger abbreviation
+" completion.
+inoremap <silent><expr> <Plug>simpleSnippetTrigger pumvisible() ? "\<C-n>" : "<C-]><C-r>=simplesnippets#RecursiveSnippetsHandler()<CR>"

@@ -116,7 +116,6 @@ function! s:RecursiveSimpleSnippets() abort
     let l:matchString = l:line[l:cursor - l:matchLength : l:cursor - 2]
     let l:matches = filter(copy(g:SimpleSnippetsList), 'l:matchString[max([0, l:matchLength - v:val[1] - 1]) : l:matchLength - 1] =~# v:val[0]')
     if len(l:matches) == 1
-        let b:stopAutoComplete = 1
         return <SID>InsertSnippet(l:matches[0])
     elseif len(l:matches) > 1
         let l:idList = map(copy(l:matches), 'v:val[6]')
@@ -124,30 +123,20 @@ function! s:RecursiveSimpleSnippets() abort
             let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
         endfor
         let l:match = l:matches[inputlist(l:idList) - 1]
-        let b:stopAutoComplete = 1
         return <SID>InsertSnippet(l:match)
     elseif len(b:recursiveSnippetList) > 0 
         " No match, so check if need to jump to end of snippet
-        let b:stopAutoComplete = 1
         return <SID>JumpOutOfSnippet(l:line, l:cursor)
     endif
     return ''
 endfunction
 
-function! simplesnippets#RecursiveSnippetsHandler(type) abort
-    " Want to use omni completion first. Solution is modeled after
-    " <https://stackoverflow.com/questions/2136801/vim-keyword-complete-when-omni-complete-returns-nothing>
+function! simplesnippets#RecursiveSnippetsHandler() abort
+    " Check first for corner cases in which we want to return <Tab>; if not,
+    " check for snippet completion; if not, try omnicompletion; if not, return
+    " nothing.
     if !exists('b:recursiveSnippetList')
         let b:recursiveSnippetList = []
-    endif
-    if !exists('b:stopAutoComplete')
-        let b:stopAutoComplete = 0
-    endif
-    if pumvisible() && !b:stopAutoComplete
-        if a:type ==# 'snippet'
-            let b:stopAutoComplete = 1
-        endif
-        return "\<C-N>"
     endif
     let l:cursor = getpos('.')[2]
     let l:previous = getline('.')[l:cursor - 2]
@@ -156,19 +145,16 @@ function! simplesnippets#RecursiveSnippetsHandler(type) abort
     if (l:previous =~# '\s' ||
             \ l:previous ==# '' ||
             \ (l:previous ==# ':' && len(b:recursiveSnippetList) == 0))
-            \ && !b:stopAutoComplete
-        let b:stopAutoComplete = 1
         return "\<Tab>"
     endif
-    if a:type ==# 'omni' && !b:stopAutoComplete
-        if !pumvisible() && !&omnifunc
-            return "\<C-X>\<C-O>"
-        endif
-    elseif a:type ==# 'snippet' && !pumvisible() && !b:stopAutoComplete
-        return <SID>RecursiveSimpleSnippets()
+    let l:snippet = <SID>RecursiveSimpleSnippets()
+    if l:snippet != ''
+        return l:snippet
+    elseif !&omnifunc
+        return "\<C-X>\<C-O>"
+    else
+        return ''
     endif
-    let b:stopAutoComplete = 0
-    return ''
 endfunction
 
 augroup RecursiveSimpleSnippets
