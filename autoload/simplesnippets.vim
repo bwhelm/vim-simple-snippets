@@ -124,7 +124,7 @@ function! s:RecursiveSimpleSnippets() abort
         endfor
         let l:match = l:matches[inputlist(l:idList) - 1]
         return <SID>InsertSnippet(l:match)
-    elseif len(b:recursiveSnippetList) > 0 
+    elseif len(b:recursiveSnippetList) > 0
         " No match, so check if need to jump to end of snippet
         return <SID>JumpOutOfSnippet(l:line, l:cursor)
     endif
@@ -148,7 +148,7 @@ function! simplesnippets#RecursiveSnippetsHandler() abort
         return "\<Tab>"
     endif
     let l:snippet = <SID>RecursiveSimpleSnippets()
-    if l:snippet != ''
+    if l:snippet !=# ''
         return l:snippet
     elseif !&omnifunc
         return "\<C-X>\<C-O>"

@@ -7,4 +7,5 @@ scriptencoding utf-8
 " Mapping. Will return <C-n> if the pop-up menu is visible, otherwise will
 " call the snippet function (after using '<C-]>' to trigger abbreviation
 " completion.
-inoremap <silent><expr> <Plug>simpleSnippetTrigger pumvisible() ? "\<C-n>" : "<C-]><C-r>=simplesnippets#RecursiveSnippetsHandler()<CR>"
+inoremap <silent> <Plug>simpleSnippetTrigger <C-]><C-r>=simplesnippets#RecursiveSnippetsHandler()<CR>
+" inoremap <silent><expr> <Plug>simpleSnippetTrigger pumvisible() ? "\<C-n>" : "<C-]><C-r>=simplesnippets#RecursiveSnippetsHandler()<CR>"
