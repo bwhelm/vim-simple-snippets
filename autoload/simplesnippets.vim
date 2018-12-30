@@ -120,7 +120,7 @@ function! s:RecursiveSimpleSnippets() abort
     elseif len(l:matches) > 1
         let l:idList = map(copy(l:matches), 'v:val[6]')
         for l:index in range(len(l:idList))
-            let l:idList[l:index] = string(l:index + 1) . '.' l:idList[l:index]
+            let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
         endfor
         let l:match = l:matches[inputlist(l:idList) - 1]
         return <SID>InsertSnippet(l:match)
