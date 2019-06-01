@@ -1,3 +1,4 @@
+" vim: set fdm=marker:
 " ============================================================================ }}}
 " Simple (Recursive) Snippets {{{1
 " ============================================================================
@@ -32,8 +33,8 @@ function! s:RestoreMapping(mapDict, key, mode) abort  "{{{1
             \ ' ' . a:mapDict.rhs
     endif
 endfunction
-
-function! simplesnippets#DeleteSimpleSnippet() abort
+"}}}
+function! simplesnippets#DeleteSimpleSnippet() abort  "{{{1
     if !exists('b:recursiveSnippetList')
         let b:recursiveSnippetList = []
     endif
@@ -68,13 +69,13 @@ function! simplesnippets#DeleteSimpleSnippet() abort
         endif
     endif
 endfunction
-
-function! s:RetrieveMatchedKey(key, id) abort
+"}}}
+function! s:RetrieveMatchedKey(key, id) abort  "{{{1
     return filter(copy(g:SimpleSnippetsList),
                 \ 'v:val[0] ==# a:key && v:val[6] ==# a:id')
 endfunction
-
-function! s:InsertSnippet(matchList) abort
+"}}}
+function! s:InsertSnippet(matchList) abort  "{{{1
     let [l:key, l:compLength, l:keyLength, l:left, l:right, l:next, l:id]
                 \ = a:matchList
     if l:right !=# ''
@@ -87,8 +88,8 @@ function! s:InsertSnippet(matchList) abort
     inoremap <silent> <BS> <C-r>=simplesnippets#DeleteSimpleSnippet()<CR>
     return l:typed
 endfunction
-
-function! s:JumpOutOfSnippet(line, cursor) abort
+"}}}
+function! s:JumpOutOfSnippet(line, cursor) abort  "{{{1
     let [l:key, l:id] = b:recursiveSnippetList[-1]
     call remove(b:recursiveSnippetList, -1)
     let l:matchList = <SID>RetrieveMatchedKey(l:key, l:id)
@@ -107,8 +108,8 @@ function! s:JumpOutOfSnippet(line, cursor) abort
     endif
     return l:typed
 endfunction
-
-function! s:RecursiveSimpleSnippets() abort
+"}}}
+function! s:RecursiveSimpleSnippets() abort  "{{{1
     let l:line = getline('.')
     let l:cursor = getpos('.')[2]
     " Check for match of simple snippets
@@ -130,8 +131,8 @@ function! s:RecursiveSimpleSnippets() abort
     endif
     return ''
 endfunction
-
-function! simplesnippets#RecursiveSnippetsHandler() abort
+"}}}
+function! simplesnippets#RecursiveSnippetsHandler() abort  "{{{1
     " Check first for corner cases in which we want to return <Tab>; if not,
     " check for snippet completion; if not, try omnicompletion; if not, return
     " nothing.
@@ -156,8 +157,8 @@ function! simplesnippets#RecursiveSnippetsHandler() abort
         return ''
     endif
 endfunction
-
-augroup RecursiveSimpleSnippets
+"}}}
+augroup RecursiveSimpleSnippets  " {{{1
     " I don't want b:recursiveSnippetList to get too big if it's not being
     " consumed. This zeros it out on save.
     autocmd!
@@ -168,3 +169,4 @@ augroup RecursiveSimpleSnippets
                 \ unlet b:completion_bs_map |
                 \ endif
 augroup END
+"}}}
