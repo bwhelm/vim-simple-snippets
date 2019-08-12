@@ -123,8 +123,14 @@ function! s:RecursiveSimpleSnippets() abort  "{{{1
         for l:index in range(len(l:idList))
             let l:idList[l:index] = string(l:index + 1) . '. ' . l:idList[l:index]
         endfor
-        let l:match = l:matches[inputlist(l:idList) - 1]
-        return <SID>InsertSnippet(l:match)
+        let l:response = inputlist(l:idList)
+        if l:response < 1 || l:response > len(l:idList)
+            " Not a valid response: do nothing
+            return
+        else
+            let l:match = l:matches[l:response - 1]
+            return <SID>InsertSnippet(l:match)
+        endif
     elseif len(b:recursiveSnippetList) > 0
         " No match, so check if need to jump to end of snippet
         return <SID>JumpOutOfSnippet(l:line, l:cursor)
@@ -139,7 +145,7 @@ function! simplesnippets#RecursiveSnippetsHandler() abort  "{{{1
     if !exists('b:recursiveSnippetList')
         let b:recursiveSnippetList = []
     endif
-    let l:cursor = getpos('.')[2]
+    let l:cursor = col('.')
     let l:previous = getline('.')[l:cursor - 2]
     " Cases in which we return a <Tab>: prior space, empty (beginning of line)
     " or ':' (for description lists).
