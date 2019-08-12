@@ -126,7 +126,7 @@ function! s:RecursiveSimpleSnippets() abort  "{{{1
         let l:response = inputlist(l:idList)
         if l:response < 1 || l:response > len(l:idList)
             " Not a valid response: do nothing
-            return
+            return 'ABORT'
         else
             let l:match = l:matches[l:response - 1]
             return <SID>InsertSnippet(l:match)
@@ -155,7 +155,9 @@ function! simplesnippets#RecursiveSnippetsHandler() abort  "{{{1
         return "\<Tab>"
     endif
     let l:snippet = <SID>RecursiveSimpleSnippets()
-    if l:snippet !=# ''
+    if l:snippet ==# 'ABORT'
+        return ''
+    elseif l:snippet !=# ''
         return l:snippet
     elseif !&omnifunc
         return "\<C-X>\<C-O>"
